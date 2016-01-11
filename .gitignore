@@ -16,3 +16,7 @@
 
 *.cfg
 *.dmp
+
+nohup.out
+broker
+broker_mqtts
