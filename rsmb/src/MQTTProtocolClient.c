@@ -626,6 +626,7 @@ int MQTTProtocol_processQueued(Clients* client)
 	if (Protocol_isClientQuiescing(client))
 		goto exit; /* don't create new work - just finish in-flight stuff */
 
+
 	Log(TRACE_MAXIMUM, 0, NULL, client->clientID);
 	while (client->good && Socket_noPendingWrites(client->socket) && /* no point in starting a publish if a write is still pending */
 		client->outboundMsgs->count < bstate->max_inflight_messages &&
@@ -725,8 +726,6 @@ void MQTTProtocol_retries(time_t now, Clients* client)
 #if defined(MQTTS)
 	if (client->protocol == PROTOCOL_MQTTS)
 	{
-		Log(LOG_WARNING, 18, NULL, client->clientID, client->socket,
-							"in mqtts protocol");
 		if (client->pendingRegistration != NULL &&
 				difftime(now, client->pendingRegistration->sent) > bstate->retry_interval)
 		{
@@ -772,7 +771,6 @@ void MQTTProtocol_retries(time_t now, Clients* client)
 			{
 				Publish publish;
 				int rc;
-				Log(LOG_INFO, 28, NULL, client->clientID, client->socket, "hello");
 				Log(LOG_INFO, 28, NULL, client->clientID, client->socket, m->msgid);
 				publish.msgId = m->msgid;
 				publish.topic = m->publish->topic;

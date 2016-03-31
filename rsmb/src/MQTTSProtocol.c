@@ -788,18 +788,17 @@ int MQTTSProtocol_handlePubacks(void* pack, int sock, char* clientAddr, Clients*
 	Log(LOG_PROTOCOL, 57, NULL, sock, clientAddr, client ? client->clientID : "", puback->msgId);
 
 	/* look for the message by message id in the records of outbound messages for this client */
-	if (ListFindItem(client->outboundMsgs, &(puback->msgId), messageIDCompare) == NULL)
+	if (ListFindItem(client->outboundMsgs, &(puback->msgId), messageIDCompare) == NULL) {
 		Log(LOG_WARNING, 50, NULL, "PUBACK", client->clientID, puback->msgId);
-	else
-	{
+	} else {
 		Messages* m = (Messages*)(client->outboundMsgs->current->content);
-		if (m->qos != 1)
+		if (m->qos != 1) {
 			Log(LOG_WARNING, 51, NULL, "PUBACK", client->clientID, puback->msgId, m->qos);
-		else
-		{
+		} else {
 			Log(TRACE_MAX, 4, NULL, client->clientID, puback->msgId);
 			MQTTProtocol_removePublication(m->publish);
 			ListRemove(client->outboundMsgs, m);
+			MQTTProtocol_processQueued(client);
 			/* TODO: msgs counts */
 			/* (++state.msgs_sent);*/
 		}
@@ -840,6 +839,7 @@ int MQTTSProtocol_handlePubcomps(void* pack, int sock, char* clientAddr, Clients
 				Log(TRACE_MAX, 5, NULL, client->clientID, pubcomp->msgId);
 				MQTTProtocol_removePublication(m->publish);
 				ListRemove(client->outboundMsgs, m);
+				MQTTProtocol_processQueued(client);
 				/* TODO: msgs counts */
 				/*(++state.msgs_sent); */
 			}
@@ -1387,7 +1387,6 @@ int MQTTSProtocol_startPublishCommon(Clients* client, Publish* mqttPublish, int 
 			pub->topicId = registration->id;
 			pub->flags.topicIdType = registration->topicIdType;
 		}
-		Log(TRACE_MAXIMUM, 3, NULL, "logger", "MQTTS send publish");
 		rc = MQTTSPacket_send_publish(client, pub);
 
 		if (pub->data == mqttPublish->payload)
