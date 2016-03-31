@@ -3,11 +3,11 @@
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
- * and Eclipse Distribution License v1.0 which accompany this distribution. 
+ * and Eclipse Distribution License v1.0 which accompany this distribution.
  *
- * The Eclipse Public License is available at 
+ * The Eclipse Public License is available at
  *    http://www.eclipse.org/legal/epl-v10.html
- * and the Eclipse Distribution License is available at 
+ * and the Eclipse Distribution License is available at
  *   http://www.eclipse.org/org/documents/edl-v10.php.
  *
  * Contributors:
@@ -398,7 +398,7 @@ int MQTTSProtocol_handleConnects(void* pack, int sock, char* clientAddr, Clients
 		{
 			/* Brand new client connection */
 			int i;
-		
+
 			client = malloc(sizeof(Clients));
 			memset(client, '\0', sizeof(Clients));
 			client->protocol = PROTOCOL_MQTTS;
@@ -522,7 +522,7 @@ int MQTTSProtocol_handleConnects(void* pack, int sock, char* clientAddr, Clients
 		}
 		/* registrations are always cleared */
 		MQTTSProtocol_emptyRegistrationList(client->registrations);
-		
+
 		/* have to remove and re-add client so it is in the right order for new socket */
 		if (client->socket != sock)
 		{
@@ -549,7 +549,7 @@ int MQTTSProtocol_handleConnects(void* pack, int sock, char* clientAddr, Clients
 			rc = MQTTSPacket_send_connack(client,0); /* send response */
 		}
 	}
-	
+
 	if (existingClient)
 		MQTTProtocol_processQueued(client);
 
@@ -1387,7 +1387,7 @@ int MQTTSProtocol_startPublishCommon(Clients* client, Publish* mqttPublish, int 
 			pub->topicId = registration->id;
 			pub->flags.topicIdType = registration->topicIdType;
 		}
-
+		Log(TRACE_MAXIMUM, 3, NULL, "logger", "MQTTS send publish");
 		rc = MQTTSPacket_send_publish(client, pub);
 
 		if (pub->data == mqttPublish->payload)
