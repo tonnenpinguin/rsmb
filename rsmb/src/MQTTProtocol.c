@@ -3,11 +3,11 @@
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
- * and Eclipse Distribution License v1.0 which accompany this distribution.
+ * and Eclipse Distribution License v1.0 which accompany this distribution. 
  *
- * The Eclipse Public License is available at
+ * The Eclipse Public License is available at 
  *    http://www.eclipse.org/legal/epl-v10.html
- * and the Eclipse Distribution License is available at
+ * and the Eclipse Distribution License is available at 
  *   http://www.eclipse.org/org/documents/edl-v10.php.
  *
  * Contributors:
@@ -295,13 +295,13 @@ void MQTTProtocol_update(time_t now)
 
 	sprintf(buf, "%d", bstate->clients->count);
 	MQTTProtocol_sys_publish("$SYS/broker/client count/connected", buf);
-
+	
 	sprintf(buf, "%d", bstate->disconnected_clients->count);
 	MQTTProtocol_sys_publish("$SYS/broker/client count/disconnected", buf);
-
+	
 	sprintf(buf, "%d", bstate->se->subs->count);
 	MQTTProtocol_sys_publish("$SYS/broker/subscriptions/count", buf);
-
+	
 	sprintf(buf, "%d", bstate->se->wsubs->count);
 	MQTTProtocol_sys_publish("$SYS/broker/wildcard_subscriptions/count", buf);
 
@@ -313,7 +313,7 @@ void MQTTProtocol_update(time_t now)
 
 	sprintf(buf, "%d", bstate->max_inflight_messages);
 	MQTTProtocol_sys_publish("$SYS/broker/settings/max_inflight_messages", buf);
-
+	
 	sprintf(buf, "%d", bstate->ffdc_count);
 	MQTTProtocol_sys_publish("$SYS/broker/ffdc/count", buf);
 
@@ -389,7 +389,7 @@ int MQTTProtocol_housekeeping(int more_work)
 	{
 		time(&(last_keepalive));
 		MQTTProtocol_keepalive(now);
-		more_work = MQTTProtocol_retry(bstate->clients, now, 1);
+		more_work = MQTTProtocol_retry(now, 1);
 		MQTTProtocol_update(now);
 		Socket_cleanNew(now);
 	}
@@ -633,8 +633,8 @@ int MQTTProtocol_handleConnects(void* pack, int sock, Clients* client)
 	Log(LOG_PROTOCOL, 26, NULL, sock, connect->clientID);/*
 			connect->Protocol, connect->flags.bits.cleanstart, connect->keepAliveTimer,
 			connect->version, connect->username, connect->password);*/
-	Socket_removeNew(sock);
-
+	Socket_removeNew(sock);		
+			
 	if (bstate->state != BROKER_RUNNING)
 		terminate = 1; /* don't accept new connection requests when we are shutting down */
 	/* Now check the version.  If we don't recognize it we will not have parsed the packet,

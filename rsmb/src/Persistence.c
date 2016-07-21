@@ -3,11 +3,11 @@
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
- * and Eclipse Distribution License v1.0 which accompany this distribution.
+ * and Eclipse Distribution License v1.0 which accompany this distribution. 
  *
- * The Eclipse Public License is available at
+ * The Eclipse Public License is available at 
  *    http://www.eclipse.org/legal/epl-v10.html
- * and the Eclipse Distribution License is available at
+ * and the Eclipse Distribution License is available at 
  *   http://www.eclipse.org/org/documents/edl-v10.php.
  *
  * Contributors:
@@ -1190,9 +1190,6 @@ Clients* Persistence_createDefaultClient(char* clientID)
 	for (i = 0; i < PRIORITY_MAX; ++i)
 		newc->queuedMsgs[i] = ListInitialize();
 	FUNC_EXIT;
-#if defined(MQTTS)
-	newc->registrations = ListInitialize();
-#endif
 	return newc;
 }
 
@@ -1233,10 +1230,10 @@ Subscriptions* Persistence_read_subscription()
 					s->wildcards = Topics_hasWildcards(s->topicName);
 					s->priority = PRIORITY_NORMAL;
 					success = 1;
-
+					 
 					if ((elem = TreeFind(bstate->disconnected_clients, s->clientName)) == NULL)
 					{
-						/*printf("adding sub for client %s\n", s->clientName);*/
+						/*printf("adding sub for client %s\n", s->clientName);*/ 
 						TreeAdd(bstate->disconnected_clients, Persistence_createDefaultClient(s->clientName),
 							sizeof(Clients) + strlen(s->clientName)+1 + 3*sizeof(List));
 					}
@@ -1274,24 +1271,24 @@ void Persistence_close_file(int write_error)
 	if (rfile)
 	{
 		char* bak1 = add_prefix(cur_backup_fn1);
-
+		
 		int rc = fclose(rfile);
-
+		
 		if (write_error != 0 || rc != 0)
 		{
 			char* loc = add_prefix(cur_fn);
 			char* bak = add_prefix(cur_backup_fn);
 
-			_unlink(loc); /* remove the erroneously written persistence file */
+			_unlink(loc); /* remove the erroneously written persistence file */ 
 			rename(bak, loc); /* restore the backup */
 			rename(bak1, bak); /* restore the 2nd backup to backup */
-
+		
 			free_prefix(loc, cur_fn);
 			free_prefix(bak, cur_backup_fn);
 		}
 		else
 			_unlink(bak1);         /* remove the second backup */
-
+			
 		free_prefix(bak1, cur_backup_fn1);
 	}
 }
@@ -1316,7 +1313,7 @@ int take_FFDC(char* symptoms)
 	#define SYMPTOM_BUFFER_SIZE 256
 	char symptom_buffer[SYMPTOM_BUFFER_SIZE];
 	snprintf(symptom_buffer, SYMPTOM_BUFFER_SIZE, "Requested by command. %s", symptoms);
-	symptom_buffer[SYMPTOM_BUFFER_SIZE - 1] = '\0';
+	symptom_buffer[SYMPTOM_BUFFER_SIZE - 1] = '\0'; 
 	Broker_recordFFDC(symptom_buffer);
 	return 0;
 }
