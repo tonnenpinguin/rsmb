@@ -167,7 +167,7 @@ void MQTTSProtocol_terminate()
 /**
  * MQTTs protocol advertise processing.
  */
-void MQTTSProtocol_housekeeping()
+void MQTTSProtocol_housekeeping(int work)
 {
 	ListElement* current = NULL;
 	time_t now = 0;
@@ -176,13 +176,12 @@ void MQTTSProtocol_housekeeping()
 	/* for each listener, if the advertise parameter is set and the interval has expired,
 	 * call send_advertise
 	 */
+	time(&(now));
 	while (ListNextElement(bstate->listeners, &current))
 	{
 		Listener *listener = (Listener*)current->content;
 		if (listener->advertise)
 		{
-			if (now == 0)
-				time(&(now));
 			if (difftime(now, listener->advertise->last) > listener->advertise->interval)
 			{
 				int rc = 0;
@@ -193,7 +192,10 @@ void MQTTSProtocol_housekeeping()
 			}
 		}
 	}
-	FUNC_EXIT;
+	work = MQTTProtocol_retry(bstate->mqtts_clients, now, 1);
+
+	FUNC_EXIT_RC(work);
+	return work;
 }
 
 
@@ -342,7 +344,7 @@ int MQTTSProtocol_handleConnects(void* pack, int sock, char* clientAddr, Clients
 	int terminate = 0;
 	Node* elem = NULL;
 	int rc = 0;
-	int existingClient = 0;
+	int existingClient = 1;
 
 	FUNC_ENTRY;
 	Log(LOG_PROTOCOL, 39, NULL, sock, clientAddr, client ? client->clientID : "", connect->flags.cleanSession);
@@ -394,22 +396,25 @@ int MQTTSProtocol_handleConnects(void* pack, int sock, char* clientAddr, Clients
 	if (elem == NULL)
 	{
 		client = TreeRemoveKey(bstate->disconnected_mqtts_clients, connect->clientID);
-		if (client == NULL) /* this is a totally new connection */
+		if (client == NULL)
 		{
-			/* Brand new client connection */
 			int i;
 
-			client = malloc(sizeof(Clients));
-			memset(client, '\0', sizeof(Clients));
+			if((client = TreeRemoveKey(bstate->disconnected_clients, connect->clientID)) == NULL) /* this is a totally new connection */
+			{
+				client = malloc(sizeof(Clients));
+				memset(client, '\0', sizeof(Clients));
+				client->outboundMsgs = ListInitialize();
+				client->inboundMsgs = ListInitialize();
+				for (i = 0; i < PRIORITY_MAX; ++i)
+					client->queuedMsgs[i] = ListInitialize();
+				client->registrations = ListInitialize();
+				existingClient = 0;
+				client->clientID = connect->clientID;
+				connect->clientID = NULL; /* don't want to free this space as it is being used in the clients tree below */
+			}
 			client->protocol = PROTOCOL_MQTTS;
-			client->outboundMsgs = ListInitialize();
-			client->inboundMsgs = ListInitialize();
-			for (i = 0; i < PRIORITY_MAX; ++i)
-				client->queuedMsgs[i] = ListInitialize();
-			client->registrations = ListInitialize();
 			client->noLocal = 0; /* (connect->version == PRIVATE_PROTOCOL_VERSION) ? 1 : 0; */
-			client->clientID = connect->clientID;
-			connect->clientID = NULL; /* don't want to free this space as it is being used in the clients tree below */
 			// Set Wireless Node ID if exists
 			if ( wirelessNodeId == NULL)
 			{
@@ -792,6 +797,7 @@ int MQTTSProtocol_handlePubacks(void* pack, int sock, char* clientAddr, Clients*
 		Log(LOG_WARNING, 50, NULL, "PUBACK", client->clientID, puback->msgId);
 	} else {
 		Messages* m = (Messages*)(client->outboundMsgs->current->content);
+		Log(LOG_PROTOCOL, 56, NULL, sock, clientAddr, client ? client->clientID : "", puback->msgId, m->qos);
 		if (m->qos != 1) {
 			Log(LOG_WARNING, 51, NULL, "PUBACK", client->clientID, puback->msgId, m->qos);
 		} else {

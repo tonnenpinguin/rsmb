@@ -3,11 +3,11 @@
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
- * and Eclipse Distribution License v1.0 which accompany this distribution. 
+ * and Eclipse Distribution License v1.0 which accompany this distribution.
  *
- * The Eclipse Public License is available at 
+ * The Eclipse Public License is available at
  *    http://www.eclipse.org/legal/epl-v10.html
- * and the Eclipse Distribution License is available at 
+ * and the Eclipse Distribution License is available at
  *   http://www.eclipse.org/org/documents/edl-v10.php.
  *
  * Contributors:
@@ -162,7 +162,7 @@ void Protocol_timeslice()
 			}
 #endif
 		}
-		
+
 		if (bridge_connection == 0)
 #if defined(MQTTS)
 		{
@@ -191,7 +191,7 @@ void Protocol_timeslice()
 		Protocol_closing();
 	more_work = MQTTProtocol_housekeeping(more_work);
 #if defined(MQTTS)
-	MQTTSProtocol_housekeeping();
+	mqttsn_work = MQTTSProtocol_housekeeping(mqttsn_work);
 #endif
 exit:
 	FUNC_EXIT;
@@ -212,7 +212,7 @@ void Protocol_processPublication(Publish* publish, char* originator)
 	int clean_needed = 0;
 
 	FUNC_ENTRY;
-	
+
 	if (Topics_hasWildcards(publish->topic))
 	{
 		Log(LOG_INFO, 12, NULL, publish->topic, originator);
@@ -222,7 +222,7 @@ void Protocol_processPublication(Publish* publish, char* originator)
 	if ((strcmp(INTERNAL_CLIENTID, originator) != 0) && bstate->password_file && bstate->acl_file)
 	{
 		Clients* client = (Clients*)(TreeFindIndex(bstate->clients, originator, 1)->content);
-		
+
 		if (Users_authorise(client->user, publish->topic, ACL_WRITE) == false)
 		{
 			Log(LOG_AUDIT, 149, NULL, originator, publish->topic);
@@ -264,10 +264,10 @@ void Protocol_processPublication(Publish* publish, char* originator)
 		unsigned int qos = ((Subscriptions*)(current->content))->qos;
 		int priority = ((Subscriptions*)(current->content))->priority;
 		char* clientName = ((Subscriptions*)(current->content))->clientName;
-		
+
 		if (publish->header.bits.qos < qos) /* reduce qos if > subscribed qos */
 			qos = publish->header.bits.qos;
-			
+
 		if ((curnode = TreeFindIndex(bstate->clients, clientName, 1)) == NULL)
 			curnode = TreeFind(bstate->disconnected_clients, clientName);
 #if defined(MQTTS)
@@ -281,7 +281,7 @@ void Protocol_processPublication(Publish* publish, char* originator)
 			int retained = 0;
 			Messages* saved = NULL;
 			char* original_topic = publish->topic;
-			
+
 #if !defined(NO_BRIDGE)
 			if (pubclient->outbound || pubclient->noLocal)
 			{

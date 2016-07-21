@@ -634,7 +634,7 @@ int MQTTProtocol_processQueued(Clients* client)
 #if defined(QOS0_SEND_LIMIT)
 		&& qos0count < bstate->max_inflight_messages /* an arbitrary criterion - but when would we restart? */
 #endif
-		#if defined(MQTTS)
+#if 0 //defined(MQTTS)
 		&& (client->protocol == PROTOCOL_MQTT || client->outboundMsgs->count == 0)
 #endif
 		)
@@ -854,18 +854,18 @@ void MQTTProtocol_retries(time_t now, Clients* client)
  * @param doRetry boolean - retries as well as pending writes?
  * @return not actually used
  */
-int MQTTProtocol_retry(time_t now, int doRetry)
+int MQTTProtocol_retry(Tree* clients, time_t now, int doRetry)
 {
 	Node* current = NULL;
 	int rc = 0;
 
 	FUNC_ENTRY;
-	current = TreeNextElement(bstate->clients, current);
+	current = TreeNextElement(clients, current);
 	/* look through the outbound message list of each client, checking to see if a retry is necessary */
 	while (current)
 	{
 		Clients* client = (Clients*)(current->content);
-		current = TreeNextElement(bstate->clients, current);
+		current = TreeNextElement(clients, current);
 		if (client->connected == 0)
 		{
 #if defined(MQTTS)
