@@ -721,7 +721,6 @@ exit:
 void MQTTProtocol_retries(time_t now, Clients* client)
 {
 	ListElement* outcurrent = NULL;
-
 	FUNC_ENTRY;
 #if defined(MQTTS)
 	if (client->protocol == PROTOCOL_MQTTS)
@@ -909,7 +908,6 @@ int MQTTProtocol_retry(time_t now, int doRetry)
 	FUNC_EXIT_RC(rc);
 	return rc;
 }
-
 
 /**
  * Free a client structure

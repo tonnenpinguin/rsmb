@@ -3,11 +3,11 @@
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
- * and Eclipse Distribution License v1.0 which accompany this distribution. 
+ * and Eclipse Distribution License v1.0 which accompany this distribution.
  *
- * The Eclipse Public License is available at 
+ * The Eclipse Public License is available at
  *    http://www.eclipse.org/legal/epl-v10.html
- * and the Eclipse Distribution License is available at 
+ * and the Eclipse Distribution License is available at
  *   http://www.eclipse.org/org/documents/edl-v10.php.
  *
  * Contributors:
@@ -53,6 +53,7 @@ int MQTTSProtocol_handleWillTopicResps(void* pack, int sock, char* clientAddr, C
 int MQTTSProtocol_handleWillMsgUpds(void* pack, int sock, char* clientAddr, Clients* client);
 int MQTTSProtocol_handleWillMsgResps(void* pack, int sock, char* clientAddr, Clients* client);
 int MQTTSProtocol_handleConnects(void* pack, int sock, char* clientAddr, Clients* client, uint8_t* wirelessNodeId , uint8_t wirelessNodeIdLen );
+int MQTTSProtocol_retry(time_t now, int doRetry);
 
 char* MQTTSProtocol_getRegisteredTopicName(Clients* client, int topicId);
 void MQTTSProtocol_freeRegistrationList(List* regList);

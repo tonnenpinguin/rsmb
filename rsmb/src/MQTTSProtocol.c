@@ -42,7 +42,7 @@
 
 void MQTTProtocol_removePublication(Publications* p);
 
-
+static time_t last_keepalive;	/**< time of last keep alive processing */
 typedef int (*pf)(void*, int, char* clientAddr, Clients* client);
 
 #if !defined(NO_BRIDGE)
@@ -145,6 +145,7 @@ int registeredTopicIdCompare(void*a, void* b)
 int MQTTSProtocol_initialize(BrokerStates* aBrokerState)
 {
 	bstate = aBrokerState;
+	time(&(last_keepalive));
 
 	return MQTTSPacket_initialize(bstate);
 }
@@ -193,6 +194,16 @@ void MQTTSProtocol_housekeeping()
 			}
 		}
 	}
+	time(&(now));
+	if (difftime(now, last_keepalive) > 5)
+	{
+		time(&(last_keepalive));
+		MQTTProtocol_keepalive(now);
+		MQTTSProtocol_retry(now, 1);
+		// MQTTProtocol_update(now);
+		// Socket_cleanNew(now);
+	}
+
 	FUNC_EXIT;
 }
 
@@ -550,9 +561,24 @@ int MQTTSProtocol_handleConnects(void* pack, int sock, char* clientAddr, Clients
 		}
 	}
 
-	if (existingClient)
-		MQTTProtocol_processQueued(client);
+	if (existingClient) {
+		if (client->cleansession == 0) {
+			ListElement* outcurrent = NULL;
+			time_t now = 0;
 
+			/* ensure that inflight messages are retried now by setting the last touched time
+			 * to very old (0) before calling the retry function
+			 */
+			time(&(now));
+			while (ListNextElement(client->outboundMsgs, &outcurrent))
+			{
+				Messages* m = (Messages*)(outcurrent->content);
+				m->lastTouch = 0;
+			}
+			MQTTProtocol_retries(now, client);
+			MQTTProtocol_processQueued(client);
+		}
+	}
 	Log(LOG_INFO, 0, "Client connected to udp port %d from %s (%s)", list->port, client->clientID, clientAddr);
 
 	MQTTSPacket_free_packet(pack);
@@ -1396,5 +1422,66 @@ int MQTTSProtocol_startPublishCommon(Clients* client, Publish* mqttPublish, int 
 	return rc;
 }
 
+/**
+ * MQTT retry protocol and socket pending writes processing.
+ * @param now current time
+ * @param doRetry boolean - retries as well as pending writes?
+ * @return not actually used
+ */
+int MQTTSProtocol_retry(time_t now, int doRetry)
+{
+	Node* current = NULL;
+	int rc = 0;
+
+	FUNC_ENTRY;
+	current = TreeNextElement(bstate->mqtts_clients, current);
+	/* look through the outbound message list of each client, checking to see if a retry is necessary */
+	while (current)
+	{
+		Clients* client = (Clients*)(current->content);
+		current = TreeNextElement(bstate->mqtts_clients, current);
+		if (client->connected == 0)
+		{
+#if defined(MQTTS)
+			if (client->protocol == PROTOCOL_MQTTS)
+			{
+				if (difftime(now,client->lastContact) > bstate->retry_interval)
+				{
+					int rc2 = 0;
+					/* NB: no dup bit for these packets */
+					if (client->connect_state == 1) /* TODO: handle err */
+						rc2 = MQTTSPacket_send_willTopicReq(client);
+					else if (client->connect_state == 2) /* TODO: handle err */
+						rc2 = MQTTSPacket_send_willMsgReq(client);
+					if (rc2 == SOCKET_ERROR)
+					{
+						client->good = 0;
+						Log(LOG_WARNING, 29, NULL, client->clientID, client->socket);
+						MQTTProtocol_closeSession(client, 1);
+						client = NULL;
+					}
+				}
+			}
+#endif
+			continue;
+		}
+		if (client->good == 0)
+		{
+			MQTTProtocol_closeSession(client, 1);
+			continue;
+		}
+		if (Socket_noPendingWrites(client->socket) == 0)
+			continue;
+		if (doRetry)
+			MQTTProtocol_retries(now, client);
+		if (client)
+		{
+			if (MQTTProtocol_processQueued(client))
+				rc = 1;
+		}
+	}
+	FUNC_EXIT_RC(rc);
+	return rc;
+}
 
 #endif /* #if defined(MQTTS */
