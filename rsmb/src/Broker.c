@@ -277,6 +277,9 @@ int main(int argc, char* argv[])
 	Log(LOG_INFO, 53, "Version %s, %s", BrokerState.version, BrokerState.timestamp);
 	Log(LOG_INFO, 54, "Features included: %s", features);
 	Log(LOG_INFO, 9993, "Authors: Ian Craggs (icraggs@uk.ibm.com), Nicholas O'Leary");
+	#if defined(BLUEROVER)
+	printf("BLUEROVER flag on\n");
+	#endif
 
 	if ((rc = Broker_startup()) == 0)
 	{

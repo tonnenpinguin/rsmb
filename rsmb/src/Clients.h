@@ -31,6 +31,11 @@ enum protocols
 	PROTOCOL_MQTT, PROTOCOL_MQTTS, PROTOCOL_MQTTS_MULTICAST
 };
 
+enum sleep_states
+{
+	ASLEEP, ACTIVE, AWAKE, LOST, DISCONNECTED
+};
+
 /*BE
 include "LinkedList"
 include "Users"
@@ -275,7 +280,9 @@ typedef struct
 	int discardedMsgs;				/**< how many have we had to throw away? */
 #if defined(MQTTS)
 	int protocol;                   /**< 0=MQTT 1=MQTTS */
-	int sleep_state;                /***< MQTT-S sleep state: asleep, active, awake, lost */
+	int sleep_state;                /***< MQTT-S sleep state: asleep, active, awake, lost, disconnected */
+	time_t start_sleep;
+	int sleep_duration;
 	List* registrations;
 	PendingRegistration* pendingRegistration;
 	uint8_t* wirelessNodeId;         /**< Wireless Node ID used in Encapsulation forwarder packet.
@@ -284,6 +291,9 @@ typedef struct
 #if !defined(NO_BRIDGE)
 	PendingSubscription* pendingSubscription;
 #endif
+#endif
+#if defined(BLUEROVER)
+	int resubscription_requested;
 #endif
 } Clients;
 #if !defined(__APPLE__)

@@ -258,12 +258,15 @@ void Protocol_processPublication(Publish* publish, char* originator)
 		}
 	}
 	current = NULL;
+	
 	while (ListNextElement(clients, &current))
 	{
 		Node* curnode = NULL;
 		unsigned int qos = ((Subscriptions*)(current->content))->qos;
 		int priority = ((Subscriptions*)(current->content))->priority;
 		char* clientName = ((Subscriptions*)(current->content))->clientName;
+		
+		printf("found client %s that's subscribing to %s\n", clientName, publish->topic);
 		
 		if (publish->header.bits.qos < qos) /* reduce qos if > subscribed qos */
 			qos = publish->header.bits.qos;
@@ -373,7 +376,10 @@ int Protocol_startOrQueuePublish(Clients* pubclient, Publish* publish, int qos, 
 #endif
 	}
 	else if (qos != 0 || (pubclient->connected && pubclient->good))    /* only queue qos 0 if the client is connected in a good way */
-		rc = MQTTProtocol_queuePublish(pubclient, publish, qos, retained, priority, mm);
+		{
+			rc = MQTTProtocol_queuePublish(pubclient, publish, qos, retained, priority, mm);
+			printf("queued publish message for sleeping client %s\n", pubclient->clientID);
+		}
 	FUNC_EXIT_RC(rc);
 	return rc;
 }

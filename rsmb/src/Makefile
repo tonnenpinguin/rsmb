@@ -122,7 +122,7 @@ broker_mqtts: $(OBJS)
 
 $(OBJDIR_MQTT-SN)/%.o : %.c *.h
 	@mkdir -p $(@D)
-	$(GCC) $(CFLAGS) -Os -c -DMQTTS $< -o $@
+	$(GCC) $(CFLAGS) -Os -c -DMQTTS -DBLUEROVER $< -o $@
 
 # broker_mqtts: *.c *.h
 #	${GCC} -DMQTTS -Wall -s -Os *.c -o broker_mqtts

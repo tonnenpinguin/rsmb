@@ -562,11 +562,14 @@ void MQTTProtocol_keepalive(time_t now)
 	Node* current = NULL;
 
 	FUNC_ENTRY;
+		
 	current = TreeNextElement(bstate->clients, current);
+
 	while (current)
 	{
 		Clients* client =	(Clients*)(current->content);
 		current = TreeNextElement(bstate->clients, current);
+		
 #if !defined(NO_BRIDGE)
 		if (client->outbound)
 		{
@@ -626,7 +629,6 @@ int MQTTProtocol_processQueued(Clients* client)
 	if (Protocol_isClientQuiescing(client))
 		goto exit; /* don't create new work - just finish in-flight stuff */
 
-
 	Log(TRACE_MAXIMUM, 0, NULL, client->clientID);
 	while (client->good && Socket_noPendingWrites(client->socket) && /* no point in starting a publish if a write is still pending */
 		client->outboundMsgs->count < bstate->max_inflight_messages &&
@@ -634,7 +636,7 @@ int MQTTProtocol_processQueued(Clients* client)
 #if defined(QOS0_SEND_LIMIT)
 		&& qos0count < bstate->max_inflight_messages /* an arbitrary criterion - but when would we restart? */
 #endif
-		#if defined(MQTTS)
+#if defined(MQTTS)
 		&& (client->protocol == PROTOCOL_MQTT || client->outboundMsgs->count == 0)
 #endif
 		)
@@ -656,6 +658,8 @@ int MQTTProtocol_processQueued(Clients* client)
 		m = (Messages*)(queue->first->content);
 
 		Log(TRACE_MAXIMUM, 1, NULL, client->clientID);
+		
+		printf("MQTTProtocol_processQueued: message topic %s\n", m->publish->topic);
 #if defined(MQTTS)
 		if (client->protocol == PROTOCOL_MQTTS && strlen(m->publish->topic) > 2 &&
 				MQTTSProtocol_getRegisteredTopicId(client, m->publish->topic) == 0)

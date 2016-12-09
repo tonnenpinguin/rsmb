@@ -548,6 +548,7 @@ List* SubscriptionEngines_getSubscribers1(List* sl, char* aTopic, char* clientID
 	ListElement* current = NULL;
 
 	FUNC_ENTRY;
+	
 	while (ListNextElement(sl, &current))
 	{
 		Subscriptions* s = current->content;
@@ -589,6 +590,7 @@ List* SubscriptionEngines_getSubscribers2(Tree* st, List* rc, char* aTopic, char
 	Node* curnode = NULL;
 
 	FUNC_ENTRY;
+
 	if ((curnode = TreeFind(st, aTopic)) != NULL)
 	{
 		/* process each subscription in the list */

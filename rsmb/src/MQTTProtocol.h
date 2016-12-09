@@ -89,6 +89,7 @@ int MQTTProtocol_initialize(BrokerStates*);
 void MQTTProtocol_shutdownclients(Tree* clients, int terminate);
 void MQTTProtocol_shutdown(int terminate);
 void MQTTProtocol_checkPendingWrites();
+void MQTTProtocol_removePendingWrites(Clients* client);
 int MQTTProtocol_housekeeping(int more_work);
 void MQTTProtocol_timeslice(int sock, Clients* client);
 void MQTTProtocol_clean_clients(Tree* clients);

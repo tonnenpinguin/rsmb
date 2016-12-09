@@ -997,6 +997,7 @@ FILE* Persistence_open_common(char mode, char* fn, char* backup_fn, char* backup
 	char *type = (fn[7] == 'r') ? Messages_get(139, LOG_INFO) : Messages_get(140, LOG_INFO);
 
 	FUNC_ENTRY;
+	
 	cur_fn = fn;
 	cur_backup_fn = backup_fn;
 	cur_backup_fn1 = backup_fn1;
@@ -1007,7 +1008,7 @@ FILE* Persistence_open_common(char mode, char* fn, char* backup_fn, char* backup
 		char* loc = add_prefix(fn);
 		char* bak = add_prefix(backup_fn);
 		char* bak1 = add_prefix(backup_fn1);
-
+		
 		_unlink(bak1);         /* make room for second backup */
 		rename(bak, bak1);     /* move backup to second backup */
 		rename(loc, bak);      /* move current state file to backup */
@@ -1152,18 +1153,31 @@ int Persistence_write_subscription(Subscriptions* s)
 		int len = strlen(s->clientName);
 
 		if (fwrite(&len, sizeof(int), 1, rfile) != 1)
+		{
 			rc = -1;
+		}
 		if (fwrite(s->clientName, len, 1, rfile) != 1)
+		{
 			rc = -1;
+		}
 		if (fwrite(&(s->noLocal), sizeof(int), 1, rfile) != 1)
+		{
 			rc = -1;
+		}
 		if (fwrite(&(s->qos), sizeof(int), 1, rfile) != 1)
+		{
 			rc = -1;
+		}
 		len = strlen(s->topicName);
+		
 		if (fwrite(&len, sizeof(int), 1, rfile) != 1)
+		{
 			rc = -1;
+		}
 		if (fwrite(s->topicName, len, 1, rfile) != 1)
+		{
 			rc = -1;
+		}
 	}
 	else
 		rc = -1;
@@ -1230,12 +1244,17 @@ Subscriptions* Persistence_read_subscription()
 					s->wildcards = Topics_hasWildcards(s->topicName);
 					s->priority = PRIORITY_NORMAL;
 					success = 1;
+
 					 
 					if ((elem = TreeFind(bstate->disconnected_clients, s->clientName)) == NULL)
 					{
-						/*printf("adding sub for client %s\n", s->clientName);*/ 
+#if defined(MQTTS)
+//						TreeAdd(bstate->disconnected_mqtts_clients, Persistence_createDefaultClient(s->clientName),
+//							sizeof(Clients) + strlen(s->clientName)+1 + 3*sizeof(List));
+#else
 						TreeAdd(bstate->disconnected_clients, Persistence_createDefaultClient(s->clientName),
 							sizeof(Clients) + strlen(s->clientName)+1 + 3*sizeof(List));
+#endif
 					}
 					else
 					{

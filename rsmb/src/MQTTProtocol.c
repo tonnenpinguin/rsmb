@@ -342,6 +342,17 @@ void MQTTProtocol_update(time_t now)
 	FUNC_EXIT;
 }
 
+void MQTTProtocol_removePendingWrites(Clients* client)
+{
+	FUNC_ENTRY;
+	if (ListFindItem(&(state.pending_writes), &(client->socket), intcompare))
+	{
+		pending_write* pw = (pending_write*)(state.pending_writes.current->content);
+		MQTTProtocol_removePublication(pw->p);
+		ListRemove(&(state.pending_writes), pw);
+	}
+	FUNC_EXIT;
+}
 
 /**
  * See if any pending writes have been completed, and cleanup if so.
