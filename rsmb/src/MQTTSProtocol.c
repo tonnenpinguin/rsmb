@@ -479,6 +479,8 @@ int MQTTSProtocol_handleConnects(void* pack, int sock, char* clientAddr, Clients
 		if (client->cleansession)
 		{
 			MQTTProtocol_removeAllSubscriptions(client->clientID); /* clear any persistent subscriptions */
+			MQTTSProtocol_emptyRegistrationList(client->registrations);
+
 		}
 
 		if (connect->flags.will)
@@ -565,9 +567,8 @@ int MQTTSProtocol_handleConnects(void* pack, int sock, char* clientAddr, Clients
 			for (i = 0; i < PRIORITY_MAX; ++i)
 				MQTTProtocol_emptyMessageList(client->queuedMsgs[i]);
 			MQTTProtocol_clearWill(client);
+			MQTTSProtocol_emptyRegistrationList(client->registrations);
 		}
-		/* registrations are always cleared */
-		MQTTSProtocol_emptyRegistrationList(client->registrations);
 
 		/* have to remove and re-add client so it is in the right order for new socket */
 		if (client->socket != sock)
@@ -1158,10 +1159,10 @@ int MQTTSProtocol_handlePingreqs(void* pack, int sock, char* clientAddr, Clients
 	int rc = 0;
 
 	FUNC_ENTRY;
-	
+	printf("received ping req from client %s\n", client->clientID);
+
 	if (client->sleep_state == ASLEEP)
 	{
-		printf("received ping req from client %s, waking up...\n", client->clientID);
 		if (queuedMsgsCount(client) > 0)
 		{
 			printf("found queued messages, start processing...\n");
@@ -1177,10 +1178,9 @@ int MQTTSProtocol_handlePingreqs(void* pack, int sock, char* clientAddr, Clients
 			MQTTSProtocol_enterSleepState(client, client->sleep_duration);
 		}
 	}
-	else
+	else if (client->sleep_state != AWAKE)
 	{
 		rc = MQTTSPacket_send_pingResp(client);
-
 	}
 	
 	time( &(client->lastContact) );
