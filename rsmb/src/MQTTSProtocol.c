@@ -360,6 +360,7 @@ int MQTTSProtocol_handleConnects(void* pack, int sock, char* clientAddr, Clients
 	Node* elem = NULL;
 	int rc = 0;
 	int existingClient = 0;
+	int newClient = 0;
 
 	FUNC_ENTRY;
 	Log(LOG_PROTOCOL, 39, NULL, sock, clientAddr, client ? client->clientID : "", connect->flags.cleanSession);
@@ -415,6 +416,8 @@ int MQTTSProtocol_handleConnects(void* pack, int sock, char* clientAddr, Clients
 		{
 			/* Brand new client connection */
 			int i;
+			
+			newClient = 1;
 
 			client = malloc(sizeof(Clients));
 			memset(client, '\0', sizeof(Clients));
@@ -444,6 +447,7 @@ int MQTTSProtocol_handleConnects(void* pack, int sock, char* clientAddr, Clients
 		} // // client == NULL
 		else /* there is an existing disconnected client */
 		{
+			printf("reconnect of a disconnected client\n");
 			/* Reconnect of a disconnected client */
 			free(client->addr);
 			client->connect_state = 0;
@@ -499,7 +503,7 @@ int MQTTSProtocol_handleConnects(void* pack, int sock, char* clientAddr, Clients
 			 *  with clean session set to 0.
 			 * 
 			*/
-			if (client->cleansession == 0)
+			if ((client->cleansession == 0) && (newClient))
 			{
 				printf("forcing client %s to resub\n", client->clientID);
 				client->resubscription_requested = 1;
@@ -1157,12 +1161,17 @@ int MQTTSProtocol_handleUnsubacks(void* pack, int sock, char* clientAddr, Client
 int MQTTSProtocol_handlePingreqs(void* pack, int sock, char* clientAddr, Clients* client)
 {
 	int rc = 0;
+	time_t now;
 
 	FUNC_ENTRY;
 	printf("received ping req from client %s\n", client->clientID);
 
 	if (client->sleep_state == ASLEEP)
 	{
+		time(&(now));
+		/*clear in flight messages first*/
+		MQTTProtocol_retries(now, client);
+		
 		if (queuedMsgsCount(client) > 0)
 		{
 			printf("found queued messages, start processing...\n");

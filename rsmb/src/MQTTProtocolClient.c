@@ -666,7 +666,7 @@ int MQTTProtocol_processQueued(Clients* client)
 		{
 			if (client->pendingRegistration == NULL)
 				rc = MQTTSProtocol_startRegistration(client, m->publish->topic);
-				goto exit;
+			goto exit;
 		}
 
 #endif
