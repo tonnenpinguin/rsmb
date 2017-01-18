@@ -659,11 +659,12 @@ int MQTTProtocol_processQueued(Clients* client)
 
 		Log(TRACE_MAXIMUM, 1, NULL, client->clientID);
 		
-		printf("MQTTProtocol_processQueued: message topic %s\n", m->publish->topic);
+		printf("Processing queued messages for client %s: message topic %s\n", client->clientID, m->publish->topic);
 #if defined(MQTTS)
 		if (client->protocol == PROTOCOL_MQTTS && strlen(m->publish->topic) > 2 &&
 				MQTTSProtocol_getRegisteredTopicId(client, m->publish->topic) == 0)
 		{
+			printf("No topic ID found, regack pending from client %s: %d\n", client->clientID, (client->pendingRegistration != NULL));
 			if (client->pendingRegistration == NULL)
 				rc = MQTTSProtocol_startRegistration(client, m->publish->topic);
 			goto exit;

@@ -484,7 +484,7 @@ int MQTTSProtocol_handleConnects(void* pack, int sock, char* clientAddr, Clients
 		{
 			MQTTProtocol_removeAllSubscriptions(client->clientID); /* clear any persistent subscriptions */
 			MQTTSProtocol_emptyRegistrationList(client->registrations);
-
+			client->pendingRegistration = NULL;
 		}
 
 		if (connect->flags.will)
@@ -507,6 +507,8 @@ int MQTTSProtocol_handleConnects(void* pack, int sock, char* clientAddr, Clients
 			{
 				printf("forcing client %s to resub\n", client->clientID);
 				client->resubscription_requested = 1;
+				MQTTProtocol_removeAllSubscriptions(client->clientID); /* clear any persistent subscriptions */
+				MQTTSProtocol_emptyRegistrationList(client->registrations);
 				rc = MQTTSPacket_send_connack(client, FORCE_CLIENT_RESUB);
 			}
 			else
@@ -572,6 +574,8 @@ int MQTTSProtocol_handleConnects(void* pack, int sock, char* clientAddr, Clients
 				MQTTProtocol_emptyMessageList(client->queuedMsgs[i]);
 			MQTTProtocol_clearWill(client);
 			MQTTSProtocol_emptyRegistrationList(client->registrations);
+			client->pendingRegistration = NULL;
+
 		}
 
 		/* have to remove and re-add client so it is in the right order for new socket */
@@ -584,7 +588,6 @@ int MQTTSProtocol_handleConnects(void* pack, int sock, char* clientAddr, Clients
 		}
 
 		client->keepAliveInterval = connect->keepAlive;
-		client->pendingRegistration = NULL;
 #if !defined(NO_BRIDGE)
 		client->pendingSubscription = NULL;
 #endif
@@ -601,6 +604,8 @@ int MQTTSProtocol_handleConnects(void* pack, int sock, char* clientAddr, Clients
 			if (client->resubscription_requested)
 			{
 				printf("forcing client %s to resub\n", client->clientID);
+				MQTTProtocol_removeAllSubscriptions(client->clientID); /* clear any persistent subscriptions */
+				MQTTSProtocol_emptyRegistrationList(client->registrations);
 				rc = MQTTSPacket_send_connack(client, FORCE_CLIENT_RESUB);
 			}
 			else
@@ -714,6 +719,9 @@ int MQTTSProtocol_handleRegacks(void* pack, int sock, char* clientAddr, Clients*
 	MQTTS_RegAck* regack = (MQTTS_RegAck*)pack;
 
 	FUNC_ENTRY;
+	
+	Log(LOG_PROTOCOL, 53, NULL, sock, clientAddr, client ? client->clientID : "",
+			regack->msgId, regack->topicId, regack->returnCode);
 	
 	if (client->pendingRegistration == NULL ||
 			regack->msgId != client->pendingRegistration->msgId)
@@ -1463,10 +1471,16 @@ int MQTTSProtocol_startRegistration(Clients* client, char* topic)
 	int rc = 0;
 
 	FUNC_ENTRY;
+	printf("MQTTSProtocol_startRegistration: client %s is ", client->clientID);
+
 	if (client->outbound)
+	{
+		printf("outbound\n");
 		rc = MQTTSProtocol_startClientRegistration(client,topic);
+	}
 	else
 	{
+		printf("inbound\n");
 		PendingRegistration* pendingReg = malloc(sizeof(PendingRegistration));
 		Registration* reg;
 		int msgId = MQTTProtocol_assignMsgId(client);
