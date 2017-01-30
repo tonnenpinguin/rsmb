@@ -482,6 +482,7 @@ int MQTTSProtocol_handleConnects(void* pack, int sock, char* clientAddr, Clients
 		
 		if (client->cleansession)
 		{
+			MQTTProtocol_emptyMessageList(client->outboundMsgs);
 			MQTTProtocol_removeAllSubscriptions(client->clientID); /* clear any persistent subscriptions */
 			MQTTSProtocol_emptyRegistrationList(client->registrations);
 			client->pendingRegistration = NULL;
