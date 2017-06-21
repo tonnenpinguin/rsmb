@@ -139,7 +139,7 @@ clean:
 	rm -f $(TARGETS)
 
 install: all
-	for i in $(TARGETS) Messages.1.3.0.2 ; do cp $$i $(INSTALL_PATH)/$$i ; done
+	for i in $(TARGETS) Messages.1.3.0.2 broker.cfg predefinedTopics.cfg; do cp $$i $(INSTALL_PATH)/$$i ; done
 
 endif
 
