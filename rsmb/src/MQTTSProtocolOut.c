@@ -78,7 +78,7 @@ Clients* MQTTSProtocol_create_multicast(char* ip_address, char* clientID, int lo
 
 	rc = Socket_new_udp(&(newc->socket), ipv6);
 	if(rc) {
-		Log(LOG_ERROR, 42, NULL, "Error creating UDP socket");
+		Log(LOG_ERROR, 155, NULL);
 	}
 
 	if (setsockopt(newc->socket, IPPROTO_IP, IP_MULTICAST_LOOP, (const char*)&loopback, sizeof(loopback)) == SOCKET_ERROR) {

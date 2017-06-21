@@ -193,7 +193,7 @@ void MQTTSProtocol_housekeeping()
 						listener->advertise->address, listener->advertise->gateway_id,
 						listener->advertise->interval);
 				if(rc) {
-					Log(LOG_WARNING, 17, NULL, "Advertising Failed");
+					Log(LOG_WARNING, 154, NULL);
 				}
 				listener->advertise->last = now;
 			}
