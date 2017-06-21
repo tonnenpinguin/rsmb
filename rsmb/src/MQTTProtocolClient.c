@@ -24,6 +24,7 @@
 #include "MQTTProtocolClient.h"
 #if defined(MQTTS)
 #include "MQTTSProtocol.h"
+#include "MQTTSPacket.h"
 #endif
 #include "Protocol.h"
 #include "SocketBuffer.h"

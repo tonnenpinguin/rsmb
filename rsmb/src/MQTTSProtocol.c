@@ -1481,6 +1481,7 @@ int MQTTSProtocol_startRegistration(Clients* client, char* topic)
 	FUNC_ENTRY;
 	printf("MQTTSProtocol_startRegistration: client %s is ", client->clientID);
 
+#if !defined(NO_BRIDGE)
 	if (client->outbound)
 	{
 		printf("outbound\n");
@@ -1488,6 +1489,7 @@ int MQTTSProtocol_startRegistration(Clients* client, char* topic)
 	}
 	else
 	{
+#endif
 		printf("inbound\n");
 		PendingRegistration* pendingReg = malloc(sizeof(PendingRegistration));
 		Registration* reg;
@@ -1500,7 +1502,10 @@ int MQTTSProtocol_startRegistration(Clients* client, char* topic)
 		time(&(pendingReg->sent));
 		client->pendingRegistration = pendingReg;
 		rc = MQTTSPacket_send_register(client, reg->id, regTopicName, msgId);
+#if !defined(NO_BRIDGE)
 	}
+#endif
+
 	FUNC_EXIT_RC(rc);
 	return rc;
 }

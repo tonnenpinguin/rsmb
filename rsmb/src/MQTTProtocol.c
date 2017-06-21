@@ -33,6 +33,7 @@
 
 #if defined(MQTTS)
 #include "MQTTSProtocol.h"
+#include "MQTTSPacket.h"
 #endif
 
 
