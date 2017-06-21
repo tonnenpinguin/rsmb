@@ -20,3 +20,6 @@
 nohup.out
 broker
 broker_mqtts
+cmake-build-debug/*
+CMakeLists.txt
+.idea/*

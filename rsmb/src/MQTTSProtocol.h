@@ -29,6 +29,8 @@ int MQTTSProtocol_initialize(BrokerStates* aBrokerState);
 void MQTTSProtocol_terminate();
 void MQTTSProtocol_housekeeping();
 void MQTTSProtocol_timeslice(int sock);
+void MQTTSProtocol_keepalive(time_t now);
+void MQTTProtocol_removePublication(Publications* p);
 
 int MQTTSProtocol_handleAdvertises(void* pack, int sock, char* clientAddr, Clients* client);
 int MQTTSProtocol_handleSearchGws(void* pack, int sock, char* clientAddr, Clients* client);

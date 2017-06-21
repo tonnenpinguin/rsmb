@@ -33,6 +33,7 @@
 #include "StackTrace.h"
 
 #include <stdio.h>
+#include <ctype.h>
 #include <string.h>
 #include <stddef.h>
 #include <memory.h>

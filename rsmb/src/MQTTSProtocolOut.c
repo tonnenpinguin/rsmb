@@ -71,15 +71,19 @@ Clients* MQTTSProtocol_create_multicast(char* ip_address, char* clientID, int lo
 
 	addr = MQTTProtocol_addressPort(ip_address, &port);
 
-	newc->addr = malloc(strlen(ip_address) + 1);
-	strcpy(newc->addr, ip_address);
+	newc->addr = malloc(strlen(addr) + 1);
+	strcpy(newc->addr, addr);
 
 	ipv6 = (newc->addr[0] == '[');
 
 	rc = Socket_new_udp(&(newc->socket), ipv6);
+	if(rc) {
+		Log(LOG_ERROR, 42, NULL, "Error creating UDP socket");
+	}
 
-	if (setsockopt(newc->socket, IPPROTO_IP, IP_MULTICAST_LOOP, (const char*)&loopback, sizeof(loopback)) == SOCKET_ERROR)
+	if (setsockopt(newc->socket, IPPROTO_IP, IP_MULTICAST_LOOP, (const char*)&loopback, sizeof(loopback)) == SOCKET_ERROR) {
 		Socket_error("set bridge IP_MULTICAST_LOOP", newc->socket);
+	}
 
 	if (intface)
 	{

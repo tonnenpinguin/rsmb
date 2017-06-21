@@ -209,7 +209,7 @@ void* MQTTSPacket_Factory(int sock, char** clientAddr, struct sockaddr* from, ui
 			// Skip Crt(1) field
 			data++ ;
 			// Wireless Node Id
-			*wlnid = data ;
+			*wlnid = (uint8_t*) data ;
 			// Wireless Node Id length is packet length - 3 octet (Length(1) + MsgType(1) + Crt(1))
 			*wlnid_len = header.len - 3 ;
 			data += *wlnid_len ;
@@ -445,7 +445,6 @@ void* MQTTSPacket_publish(MQTTSHeader header, char* data)
 {
 	MQTTS_Publish* pack = NULL;
 	char* curdata = data;
-	char* enddata = &data[header.len - 2];
 	int topicLen = 0;
 	int datalen = 0;
 
@@ -780,7 +779,7 @@ int MQTTSPacket_send(const Clients *client, MQTTSHeader header, char* buffer, in
 {
 	int rc = 0;
 	char *data = NULL;
-	uint8_t *ptr = NULL;
+	char *ptr = NULL;
 	PacketBuffer buf;
 
 	FUNC_ENTRY;
@@ -805,7 +804,7 @@ int MQTTSPacket_send(const Clients *client, MQTTSHeader header, char* buffer, in
 
 	buf.data = data;
 	buf.len = buflen + 2;
-	char *colon ;
+	char *colon = NULL;
 	if ( client->wirelessNodeId != NULL )
 	{
 		buf = MQTTSPacketSerialize_forwarder_encapsulation(client , buf) ;
@@ -841,7 +840,7 @@ int MQTTSPacket_send_ack(Clients* client, char type)
 	FUNC_ENTRY;
 	buf = MQTTSPacketSerialize_ack(type, -1);
 
-	char *colon ;
+	char *colon = NULL;
 	if ( client->wirelessNodeId != NULL )
 	{
 		buf = MQTTSPacketSerialize_forwarder_encapsulation(client , buf) ;
@@ -867,7 +866,7 @@ int MQTTSPacket_send_ack_with_msgId(Clients* client, char type, int msgId)
 	FUNC_ENTRY;
 	buf = MQTTSPacketSerialize_ack(type, msgId);
 
-	char *colon ;
+	char *colon = NULL;
 	if ( client->wirelessNodeId != NULL )
 	{
 		buf = MQTTSPacketSerialize_forwarder_encapsulation(client , buf) ;
@@ -893,7 +892,7 @@ int MQTTSPacket_send_connack(Clients* client, int returnCode)
 	FUNC_ENTRY;
 	buf = MQTTSSerialize_connack(returnCode);
 
-	char *colon ;
+	char *colon = NULL;
 	if ( client->wirelessNodeId != NULL )
 	{
 		buf = MQTTSPacketSerialize_forwarder_encapsulation(client , buf) ;
@@ -1169,7 +1168,7 @@ int MQTTSPacket_send_connect(Clients* client)
 	FUNC_ENTRY;
 	buf = MQTTSPacketSerialize_connect(client->cleansession, (client->will != NULL), 1, client->keepAliveInterval, client->clientID);
 
-	char *colon ;
+	char *colon = NULL;
 	if ( client->wirelessNodeId != NULL )
 	{
 		buf = MQTTSPacketSerialize_forwarder_encapsulation(client , buf) ;

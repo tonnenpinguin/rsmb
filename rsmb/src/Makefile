@@ -1,9 +1,9 @@
-# Inference rules are rules distinguished by the use of the character “%” in the dependency line.
-# The “%” (rule character) is a wild card, matching zero or more characters. As an example, here 
+# Inference rules are rules distinguished by the use of the character ï¿½%ï¿½ in the dependency line.
+# The ï¿½%ï¿½ (rule character) is a wild card, matching zero or more characters. As an example, here 
 # is an inference rule for building .obj files from .c files:
 #
 #    %.obj : %.c
-#    	$(CC) $(CFLAGS) –c $(.SOURCE)
+#    	$(CC) $(CFLAGS) ï¿½c $(.SOURCE)
 # 
 # This rule states that a .obj file can be built from a corresponding .c file when the .c and .obj 
 # files share the same root of the file name. 
@@ -12,7 +12,7 @@
 # specified in an alternative way:
 #
 #    .c.obj :
-#    	$(CC) $(CFLAGS) –c $(.SOURCE) 
+#    	$(CC) $(CFLAGS) ï¿½c $(.SOURCE) 
 
 SOURCES_MQTT=Bridge.c Broker.c Clients.c Filter.c Heap.c LinkedList.c Log.c Messages.c MQTTPacket.c MQTTPacketOut.c \
 	MQTTProtocol.c MQTTProtocolClient.c MQTTProtocolOut.c Persistence.c Protocol.c Socket.c SocketBuffer.c \
@@ -88,10 +88,10 @@ else
 ifndef GCC
   GCC = gcc
 endif
-CFLAGS=-Wall
+CFLAGS=-Wall -Werror
 INSTALL_PATH=~/rsmb
 
-# TARGETS=broker broker_dbg broker_mqtts rsmb.ini
+#TARGETS=broker broker_dbg broker_mqtts rsmb.ini
 TARGETS=broker broker_mqtts
 
 all: $(TARGETS)
@@ -122,7 +122,7 @@ broker_mqtts: $(OBJS)
 
 $(OBJDIR_MQTT-SN)/%.o : %.c *.h
 	@mkdir -p $(@D)
-	$(GCC) $(CFLAGS) -Os -c -DMQTTS -DBLUEROVER $< -o $@
+	$(GCC) $(CFLAGS) -Os -c -DMQTTS $< -o $@
 
 # broker_mqtts: *.c *.h
 #	${GCC} -DMQTTS -Wall -s -Os *.c -o broker_mqtts

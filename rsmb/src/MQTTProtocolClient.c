@@ -39,7 +39,6 @@ extern MQTTProtocol state;		/**< MQTT Protocol state shared with the MQTTProtoco
 extern BrokerStates* bstate; 	/**< broker state shared with the MQTTProtocol module */
 extern int in_MQTTPacket_Factory;	/**< flag shared with the MQTTProtocol module */
 
-void MQTTProtocol_removePublication(Publications* p);
 
 /**
  * List callback function for comparing Message structures by message id

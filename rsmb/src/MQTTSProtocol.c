@@ -44,8 +44,6 @@
 #define FORCE_CLIENT_RESUB 0x04
 #endif
 
-void MQTTProtocol_removePublication(Publications* p);
-
 static time_t last_keepalive;	/**< time of last keep alive processing */
 typedef int (*pf)(void*, int, char* clientAddr, Clients* client);
 
@@ -194,6 +192,9 @@ void MQTTSProtocol_housekeeping()
 				rc = MQTTSPacket_send_advertise(listener->socket,
 						listener->advertise->address, listener->advertise->gateway_id,
 						listener->advertise->interval);
+				if(rc) {
+					Log(LOG_WARNING, 17, NULL, "Advertising Failed");
+				}
 				listener->advertise->last = now;
 			}
 		}
@@ -360,7 +361,9 @@ int MQTTSProtocol_handleConnects(void* pack, int sock, char* clientAddr, Clients
 	Node* elem = NULL;
 	int rc = 0;
 	int existingClient = 0;
-	int newClient = 0;
+#if defined(BLUEROVER)
+    int newClient = 0;
+#endif
 
 	FUNC_ENTRY;
 	Log(LOG_PROTOCOL, 39, NULL, sock, clientAddr, client ? client->clientID : "", connect->flags.cleanSession);
@@ -416,8 +419,10 @@ int MQTTSProtocol_handleConnects(void* pack, int sock, char* clientAddr, Clients
 		{
 			/* Brand new client connection */
 			int i;
-			
+
+#if defined(BLUEROVER)
 			newClient = 1;
+#endif
 
 			client = malloc(sizeof(Clients));
 			memset(client, '\0', sizeof(Clients));
@@ -476,7 +481,9 @@ int MQTTSProtocol_handleConnects(void* pack, int sock, char* clientAddr, Clients
 		client->cleansession = connect->flags.cleanSession;
 		client->socket = sock;
 		client->addr = malloc(strlen(clientAddr)+1);
+#if defined(BLUEROVER)
 		client->resubscription_requested = 0;
+#endif
 		strcpy(client->addr, clientAddr);
 		TreeAdd(bstate->mqtts_clients, client, sizeof(Clients) + strlen(client->clientID)+1 + 3*sizeof(List));
 		
@@ -1232,7 +1239,7 @@ int MQTTSProtocol_handleDisconnects(void* pack, int sock, char* clientAddr, Clie
 	// Otherwise keep it. It is a sleeping client
 	if ( disc->duration == 0 ) 
 	{
-		client->sleep_state == DISCONNECTED;
+		client->sleep_state = DISCONNECTED;
 		MQTTSProtocol_emptyRegistrationList(client->registrations);
 		MQTTProtocol_closeSession(client, 0);
 	}
@@ -1633,13 +1640,12 @@ int MQTTSProtocol_retry(time_t now, int doRetry)
 	return rc;
 }
 
-
 void MQTTSProtocol_keepalive(time_t now)
 {
 	Node* current = NULL;
 
 	FUNC_ENTRY;
-		
+
 	current = TreeNextElement(bstate->mqtts_clients, current);
 
 	while (current)
@@ -1651,7 +1657,7 @@ void MQTTSProtocol_keepalive(time_t now)
 		if (client->outbound)
 		{
 			if (client->connected && client->keepAliveInterval > 0
-					&& (difftime(now, client->lastContact) >= client->keepAliveInterval))
+				&& (difftime(now, client->lastContact) >= client->keepAliveInterval))
 			{
 				if (client->ping_outstanding)
 				{
@@ -1676,19 +1682,19 @@ void MQTTSProtocol_keepalive(time_t now)
 		else
 #endif
 		if (client->connected && client->keepAliveInterval > 0
-					&& (difftime(now, client->lastContact) > 2*(client->keepAliveInterval)))
+			&& (difftime(now, client->lastContact) > 2*(client->keepAliveInterval)))
 		{ /* zero keepalive interval means never disconnect */
 			Log(LOG_INFO, 24, NULL, client->keepAliveInterval, client->clientID);
 			client->sleep_state = DISCONNECTED;
 			MQTTProtocol_closeSession(client, 1);
 		}
-		
-		if 	(  (client->sleep_state == ASLEEP) 
-			 && (client->sleep_duration > 0) 
-			 && (difftime(now, client->start_sleep) > client->sleep_duration)
-			)
+
+		if 	(  (client->sleep_state == ASLEEP)
+				 && (client->sleep_duration > 0)
+				 && (difftime(now, client->start_sleep) > client->sleep_duration)
+				)
 		{
-			printf("client %s sleep duration timed out, now = %d, start_sleep = %d\n", client->clientID, now, client->start_sleep);
+			printf("client %s sleep duration timed out, now = %lu, start_sleep = %lu\n", client->clientID, now, client->start_sleep);
 			client->sleep_state = LOST;
 			Log(LOG_INFO, 24, NULL, client->sleep_duration, client->clientID);
 			MQTTProtocol_closeSession(client, 1);
@@ -1696,5 +1702,6 @@ void MQTTSProtocol_keepalive(time_t now)
 	}
 	FUNC_EXIT;
 }
+
 
 #endif

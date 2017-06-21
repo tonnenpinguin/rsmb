@@ -266,6 +266,9 @@ int main(int argc, char* argv[])
 	Heap_initialize();
 	Log_initialize();
 
+	printf("%s\n", broker_timestamp_eye);
+	printf("%s\n", broker_version_eye);
+
 	Log(LOG_INFO, 9999, PRODUCT_NAME);
 	Log(LOG_INFO, 9998, "Part of Project Mosquitto in Eclipse\n("
                       "http://projects.eclipse.org/projects/technology.mosquitto)");
