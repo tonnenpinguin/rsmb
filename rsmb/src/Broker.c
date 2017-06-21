@@ -43,7 +43,7 @@
  *
  */
 
-
+#include <inttypes.h>
 #include <signal.h>
 #include <stdlib.h>
 #if !defined(WIN32)
@@ -531,7 +531,7 @@ char* Broker_recordFFDC(char* symptoms)
 		fprintf(file, "Version      :- %s\n", BrokerState.version);
 		fprintf(file, "Build        :- %s\n", BrokerState.timestamp);
 		fprintf(file, "Features     :- %s\n", features);
-		fprintf(file, "Pointer size :- %ld bytes\n", sizeof(void*));
+		fprintf(file, "Pointer size :- %zd bytes\n", sizeof(void*));
 		fprintf(file, "Date/Time    :- %s\n", asctime(timeinfo));
 		fprintf(file, "Reason       :- %s\n\n", symptoms);
 		/* potential additions:
